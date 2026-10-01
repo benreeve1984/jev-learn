@@ -156,8 +156,8 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <div class="grid2">
     <div>
       <p class="kicker rv">Then LLMs arrived</p>
-      <h2 class="rv">Zero labels. But the probabilities <em>lie.</em></h2>
-      <p class="sub rv"><b>Calibrated</b> = when it says 80%, it's right about 80% of the time. Chat models are trained to give answers people prefer, which pushes them to sound sure.</p>
+      <h2 class="rv">Zero labels. But can you trust the <em>probability?</em></h2>
+      <p class="sub rv"><b>Calibrated</b> = when it says 80%, it's right about 80% of the time. Chat models are trained to give answers people prefer, which pushes them to sound sure. How well they're calibrated varies a lot by model and by how you ask.</p>
     </div>
     <div class="rv">
       <div class="row" style="margin-bottom:12px">
@@ -178,10 +178,10 @@ section.in .quad .q.jev{transform:none;opacity:1}
     <div></div><div class="ax">Needs labelled data</div><div class="ax">No labels needed</div>
     <div class="ax v">Calibrated</div>
     <div class="q">Trained classifiers<small>Reliable, but one dataset per question</small></div>
-    <div class="q jev">Jev<small>Ask a new question in plain English, get an honest probability</small></div>
+    <div class="q jev">Jev?<small>Ask a new question in plain English, get a usable probability. Mostly. (More on this later.)</small></div>
     <div class="ax v">Not calibrated</div>
     <div class="q" style="opacity:.4">Bad classifiers<small>The worst of both</small></div>
-    <div class="q">LLMs<small>Flexible, but the confidence is theatre</small></div>
+    <div class="q">LLMs<small>Flexible, but confidence is hit and miss, and rarely "unsure"</small></div>
   </div>
 </section>
 
@@ -278,7 +278,28 @@ section.in .quad .q.jev{transform:none;opacity:1}
     <tr style="color:var(--mute)"><td>kev 8B (open clone)</td><td class="n">48.3</td><td class="n">71.0</td><td class="n">$0.097</td><td class="n">0.51 s</td></tr>
     <tr style="color:var(--mute)"><td>GLiNER 2.5 (zero-shot classifier)</td><td class="n">9.2</td><td class="n">55.9</td><td class="n">$0.003</td><td class="n">0.47 s</td></tr>
   </table></div>
-  <p class="small rv">Jev beats rerankers, zero-shot classifiers and the open clones. LLMs with structured output score higher on accuracy and calibration, at 3–15× the cost and 2.5× the latency. Choose on intelligence per dollar, not intelligence alone. Source: <a href="https://benchmarkheaven.com/jev-models">benchmarkheaven.com/jev-models</a></p>
+  <p class="small rv">Jev beats rerankers, zero-shot classifiers and the open clones. LLMs with structured output score higher, at 3–15× the cost and 2.5× the latency. <b>Caveats on the calibration column:</b> the LLMs state their own probabilities (no logprobs), the gold labels were written by Claude Opus 5 and GPT-5.6 Sol, and about 60% of Jev's gap comes from 50 probability-arithmetic items. Source: <a href="https://benchmarkheaven.com/jev-models">benchmarkheaven.com/jev-models</a></p>
+</section>
+
+<!-- Calibration evidence -->
+<section data-n="" class="light" style="--accent:var(--orchid)">
+  <p class="kicker rv">So is Jev better calibrated than LLMs?</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">It depends who's measuring. <em>Competitive, not magic.</em></h2>
+  <div class="grid2 rv" style="margin-top:20px;align-items:start">
+    <table>
+      <tr><th>Study (ECE, lower is better)</th><th>Jev</th><th>LLMs</th></tr>
+      <tr><td>wotai-dev, 150 passages, 16 models</td><td class="n ok">0.121</td><td style="font-size:12px">Sonnet 5 0.062 · Haiku 4.5 0.122 · DeepSeek V4 Flash 0.183 · GPT-6 Luna 0.243</td></tr>
+      <tr><td>Phishing bench, 2,000 emails</td><td class="n bad">0.154</td><td style="font-size:12px">Haiku 4.5 0.097</td></tr>
+      <tr><td>JevBench, ECE parts only (score, higher is better)</td><td class="n meh">91.7</td><td style="font-size:12px">Luna 94.6 · DeepSeek 95.4</td></tr>
+      <tr><td>NavyaAI, 200 items vs cheap LLMs (logprobs)</td><td class="n ok">0.080</td><td style="font-size:12px">0.175–0.267</td></tr>
+    </table>
+    <div>
+      <div class="row" style="margin-bottom:8px" id="calbtns"></div>
+      <div class="svgwrap" id="calplot"></div>
+      <p class="small" id="calmeta" style="margin-top:6px"></p>
+    </div>
+  </div>
+  <p class="small rv"><b>What holds up across sources:</b> Jev is roughly calibrated, beats most LLMs that just state a number, and loses to frontier models with reasoning. Its real edge is saying "unsure" quickly: on wotai's test it put 34.7% of answers in the 0.35–0.65 band, against 2.7% for Haiku, at 455 ms. TypeSafe publishes no calibration metric. If thresholds matter, recalibrate per question on about 50 labels.</p>
 </section>
 
 <!-- 11 -->
@@ -418,6 +439,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
 </section>
 
 <script src="data.js"></script>
+<script src="calibration.js"></script>
 <script>
 const R = window.RECORDED, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const pct = x => Math.round(x * 100) + '%', f2 = x => (+x).toFixed(2);
@@ -439,6 +461,24 @@ const fromHash = () => go((+location.hash.slice(1) || 1) - 1);
 addEventListener('load', () => { document.documentElement.style.scrollBehavior = 'auto'; fromHash(); secs[cur].classList.add('in'); document.documentElement.style.scrollBehavior = ''; ready = true; });
 addEventListener('hashchange', fromHash);
 const toggle = (attr, fn) => $$(`[data-${attr}]`).forEach(b => b.onclick = () => { $$(`[data-${attr}]`).forEach(x => x.classList.toggle('on', x === b)); fn(b.dataset[attr]); });
+
+// --- our own calibration run (real reliability diagram)
+const CAL = window.CALIBRATION;
+function calplot(k) {
+  const d = CAL[k], W = 380, H = 300, p = 40, sx = x => p + x * (W - 2 * p), sy = y => H - p - y * (H - 2 * p);
+  const maxN = Math.max(...d.bins.map(b => b.n));
+  $('#calplot').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Reliability diagram for ${d.name}">
+    <rect x="${p}" y="${p}" width="${W - 2 * p}" height="${H - 2 * p}" fill="none" stroke="currentColor" stroke-opacity=".2"/>
+    <line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(1)}" stroke="currentColor" stroke-dasharray="4 5" stroke-opacity=".5"/>
+    <polyline fill="none" stroke="var(--orchid)" stroke-width="2.5" points="${d.bins.map(b => sx(b.mean_p) + ',' + sy(b.frac)).join(' ')}"/>
+    ${d.bins.map(b => `<circle cx="${sx(b.mean_p)}" cy="${sy(b.frac)}" r="${3 + 11 * Math.sqrt(b.n / maxN)}" fill="var(--orchid)" fill-opacity=".8"><title>says ${f2(b.mean_p)} → actually ${f2(b.frac)} (n=${b.n})</title></circle>`).join('')}
+    <text x="${W / 2}" y="${H - 8}" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="currentColor">Jev says</text>
+    <text x="12" y="${H / 2}" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="currentColor" transform="rotate(-90 12 ${H / 2})">actually true</text>
+  </svg>`;
+  $('#calmeta').innerHTML = `<b>Our run, ${CAL.captured}:</b> ${d.name}, ${d.n} human-labelled items. Accuracy ${pct(d.accuracy)}, ECE ${d.ece.toFixed(3)}, Brier ${d.brier.toFixed(3)}. ${{ sst2: 'Underconfident: hedges on reviews that are clearly positive.', boolq: 'Close to the diagonal.', agnews: 'Overconfident at the top (says 0.99, right 91%), partly because of label noise.' }[k]}`;
+}
+$('#calbtns').innerHTML = [['sst2', 'Sentiment'], ['boolq', 'Passage Q&A'], ['agnews', 'News topic']].map(([k, l], i) => `<button data-calk="${k}" class="${i ? '' : 'on'}">${l}</button>`).join('');
+calplot('sst2'); toggle('calk', calplot);
 
 // --- 3: label chips
 $('#chips').innerHTML = Array.from({ length: 360 }, (_, i) => `<i style="animation-delay:${i * 6}ms"></i>`).join('');
