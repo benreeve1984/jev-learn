@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jev, System One</title>
+<meta name="description" content="A 30-minute training session: what Jev is, what it's good at, where it breaks, and how to decompose hard decisions into easy ones.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1E1E1E; --paper:#FEFEFE; --line:#e5e5e5; --mute:#8a8a8a;
+  --pink:#E551BA; --rose:#f386a1; --orchid:#d45bb6; --teal:#09aea1; --green:#03aa5c; --red:#ff4d3d; --amber:#ffb020;
+  --display:"Archivo", system-ui, sans-serif; --mono:"JetBrains Mono", ui-monospace, monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+body{background:var(--ink);color:var(--paper);font-family:var(--display);font-variation-settings:"wdth" 100;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+section{min-height:100vh;scroll-snap-align:start;padding:clamp(28px,6vw,96px) clamp(16px,6vw,110px);display:flex;flex-direction:column;justify-content:center;position:relative;--bg:var(--ink);--fg:var(--paper);--soft:#2a2a2a;background:var(--bg);color:var(--fg);overflow:hidden}
+section.light{--bg:var(--paper);--fg:var(--ink);--soft:#f2f2f2}
+section::after{content:attr(data-n);position:absolute;right:clamp(16px,3vw,40px);bottom:clamp(14px,3vh,32px);font:600 12px var(--mono);letter-spacing:.1em;color:var(--mute)}
+.kicker{font:600 13px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--accent,var(--pink));margin-bottom:clamp(16px,3vh,32px)}
+h1,h2{font-weight:850;font-variation-settings:"wdth" 75;letter-spacing:-.02em;line-height:.92}
+h1{font-size:clamp(56px,11vw,180px)}
+h2{font-size:clamp(40px,7.2vw,118px);max-width:14ch}
+h2.wide{max-width:22ch}
+h2 em,h1 em{font-style:normal;color:var(--accent,var(--pink))}
+.sub{font-size:clamp(18px,1.9vw,28px);line-height:1.35;max-width:46ch;margin-top:clamp(18px,3vh,36px);font-weight:400;color:color-mix(in srgb,var(--fg) 78%,transparent)}
+.sub b{color:var(--fg);font-weight:700}
+.mono{font-family:var(--mono)}
+.small{font-size:14px;color:var(--mute);margin-top:18px;max-width:70ch;line-height:1.5}
+.small a{color:inherit}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,64px);align-items:center}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.burst{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;pointer-events:none}
+button,.btn{font:600 14px var(--mono);border:1.5px solid var(--fg);background:transparent;color:var(--fg);padding:10px 16px;cursor:pointer;letter-spacing:.04em}
+button.on{background:var(--accent,var(--pink));border-color:var(--accent,var(--pink));color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.card{border:1.5px solid color-mix(in srgb,var(--fg) 22%,transparent);padding:clamp(16px,2vw,24px);background:var(--soft)}
+.tag{display:inline-block;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:4px 8px;background:var(--accent,var(--pink));color:var(--ink)}
+.bar{height:10px;background:color-mix(in srgb,var(--fg) 12%,transparent);position:relative;margin:6px 0 10px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--accent,var(--pink));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.state{font:400 clamp(15px,1.3vw,19px)/1.5 var(--mono);border-left:4px solid var(--accent,var(--pink));padding:4px 0 4px 16px;margin:12px 0 20px;max-width:70ch}
+table{border-collapse:collapse;width:100%;font:400 clamp(13px,1.05vw,16px)/1.35 var(--mono)}
+td,th{padding:9px 10px;border-bottom:1px solid color-mix(in srgb,var(--fg) 15%,transparent);text-align:left;vertical-align:top}
+th{font-weight:600;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+td.n{text-align:right;white-space:nowrap;font-weight:600}
+.ok{color:var(--green)} .bad{color:var(--red)} .meh{color:var(--amber)}
+section.light .ok{color:#028a4a}
+input[type=range]{accent-color:var(--accent,var(--pink));width:100%}
+label.ctl{display:block;font:600 12px var(--mono);letter-spacing:.06em;margin-top:12px}
+label.ctl span{float:right;color:var(--accent,var(--pink))}
+input[type=number]{font:600 15px var(--mono);background:transparent;color:var(--fg);border:1.5px solid color-mix(in srgb,var(--fg) 30%,transparent);padding:6px 8px;width:100%}
+/* progress + nav */
+#prog{position:fixed;top:0;left:0;height:4px;background:var(--pink);z-index:10;transition:width .3s}
+#hint{position:fixed;left:16px;bottom:14px;font:600 11px var(--mono);color:var(--mute);z-index:10;letter-spacing:.08em;mix-blend-mode:difference}
+/* reveal */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s, transform .7s cubic-bezier(.2,.8,.2,1)}
+section.in .rv{opacity:1;transform:none}
+section.in .rv:nth-child(2){transition-delay:.12s} section.in .rv:nth-child(3){transition-delay:.24s} section.in .rv:nth-child(4){transition-delay:.36s} section.in .rv:nth-child(5){transition-delay:.48s}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+
+/* slide specifics */
+.chips{display:flex;flex-wrap:wrap;gap:4px;max-width:900px;margin-top:28px}
+.chips i{width:14px;height:14px;background:var(--accent);opacity:.0;animation:pop .4s forwards}
+@keyframes pop{to{opacity:.85}}
+.quad{display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:6px;max-width:820px;width:100%;margin-top:28px}
+.quad .ax{font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;justify-content:center;padding:6px}
+.quad .ax.v{writing-mode:vertical-rl;transform:rotate(180deg)}
+.quad .q{min-height:clamp(110px,18vh,170px);padding:18px;font-weight:750;font-variation-settings:"wdth" 80;font-size:clamp(20px,2.2vw,32px);line-height:1;display:flex;flex-direction:column;justify-content:space-between;border:1.5px solid color-mix(in srgb,var(--fg) 20%,transparent)}
+.quad .q small{font:400 13px/1.35 var(--mono);color:var(--mute)}
+.quad .q.jev{background:var(--pink);color:var(--ink);border-color:var(--pink);transform:scale(.8);opacity:0;transition:all .8s .5s cubic-bezier(.3,1.6,.4,1)}
+.quad .q.jev small{color:var(--ink)}
+section.in .quad .q.jev{transform:none;opacity:1}
+.prims{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+@media(max-width:860px){.prims{grid-template-columns:1fr}}
+.prims h3{font-size:30px;font-weight:850;font-variation-settings:"wdth" 75;margin:8px 0 2px}
+.prims .q{font:400 13px/1.4 var(--mono);color:var(--mute);min-height:38px}
+.big{font:800 clamp(48px,6vw,84px)/1 var(--mono);letter-spacing:-.04em;color:var(--accent,var(--pink))}
+.lat{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2vw,28px);align-items:end;height:min(30vh,320px);margin-top:20px}
+.lat div{display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.lat b{display:block;background:var(--teal);height:0;transition:height 1s cubic-bezier(.2,.8,.2,1)}
+.lat span{font:600 13px/1.5 var(--mono);margin-top:10px}
+.lat strong{font:800 clamp(22px,2.6vw,36px) var(--mono);color:var(--teal)}
+.topics{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}
+.topics span{font:500 11px var(--mono);padding:4px 7px;border:1px solid color-mix(in srgb,var(--fg) 25%,transparent);opacity:.35;transition:all .3s}
+.topics span.y{background:var(--teal);color:var(--ink);border-color:var(--teal);opacity:1}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:24px}
+.flip{min-height:150px;perspective:900px;cursor:pointer;background:none;border:none;padding:0;text-align:left;color:inherit;font:inherit}
+.flip>div{position:relative;width:100%;height:100%;min-height:150px;transition:transform .6s;transform-style:preserve-3d}
+.flip.open>div{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;backface-visibility:hidden;padding:16px;display:flex;flex-direction:column;justify-content:space-between;border:1.5px solid color-mix(in srgb,var(--fg) 25%,transparent)}
+.flip .f{font-weight:750;font-variation-settings:"wdth" 85;font-size:clamp(17px,1.5vw,21px);line-height:1.15;background:var(--soft)}
+.flip .f small{font:600 11px var(--mono);color:var(--mute);letter-spacing:.1em}
+.flip .b{transform:rotateY(180deg);font:400 13px/1.45 var(--mono)}
+.flip .b strong{font:850 26px var(--display);font-variation-settings:"wdth" 75}
+.flip .b.yes{background:var(--green);color:var(--ink);border-color:var(--green)}
+.flip .b.no{background:var(--red);color:var(--ink);border-color:var(--red)}
+.flip .b.code{background:var(--amber);color:var(--ink);border-color:var(--amber)}
+.uc{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:26px}
+.uc div{padding:16px;border:1.5px solid color-mix(in srgb,var(--fg) 18%,transparent);font:400 13px/1.45 var(--mono)}
+.uc div b{display:block;font:800 20px/1.1 var(--display);font-variation-settings:"wdth" 80;margin-bottom:6px}
+.uc div em{font-style:normal;color:var(--accent)}
+.score-out{font:800 clamp(56px,7vw,100px)/1 var(--mono);letter-spacing:-.04em}
+.reasons li{list-style:none;font:400 14px/1.5 var(--mono);padding:6px 0;border-bottom:1px solid color-mix(in srgb,var(--fg) 15%,transparent)}
+.svgwrap svg{width:100%;height:auto;max-height:52vh}
+.tests{font-weight:850;font-variation-settings:"wdth" 70;font-size:clamp(46px,8.6vw,150px);line-height:.9;letter-spacing:-.02em}
+.tests span{color:var(--accent)}
+.src a{color:var(--fg);text-decoration:none;border-bottom:1.5px solid var(--accent)}
+.src li{list-style:none;font:400 15px/1.4 var(--mono);padding:8px 0}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div id="hint">← → / SPACE</div>
+
+<!-- 1 -->
+<section data-n="01" style="--accent:var(--pink)">
+  <div class="burst" style="width:46vw;height:46vw;background:var(--pink);right:-12vw;top:-14vw"></div>
+  <div class="burst" style="width:26vw;height:26vw;background:var(--teal);right:16vw;bottom:-14vw;opacity:.35"></div>
+  <p class="kicker rv">Training · Jev by TypeSafe AI</p>
+  <h1 class="rv">Fast<br>judgments.<br><em>Not smart ones.</em></h1>
+  <p class="sub rv">What's actually new about Jev, what it can do, where it breaks, and how to tell the difference before you build.</p>
+</section>
+
+<!-- Meme -->
+<section data-n="" style="--accent:var(--pink)">
+  <p class="kicker rv">The debate right now</p>
+  <div class="grid2" style="grid-template-columns:1.4fr 1fr">
+    <img class="rv" src="midwit.jpg" alt="Midwit bell-curve meme. Both tails say 'Jev is pretty useful.' The crying middle says 'Can we please stop pretending this is new? It's basically BERT / logits / structured outputs with better packaging. AI did not suddenly begin in 2023.'" style="width:100%;max-height:72vh;object-fit:contain;background:#fff">
+    <div>
+      <h2 class="rv" style="font-size:clamp(36px,4.6vw,72px)">Everyone in this picture is <em>right.</em></h2>
+      <p class="sub rv">The middle is right that the <b>shape</b> isn't new. The tails are right that it's <b>useful</b> anyway. The next ten minutes explain why both are true.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section data-n="02" class="light" style="--accent:var(--orchid)">
+  <p class="kicker rv">Start with what isn't new</p>
+  <h2 class="rv">Calibrated classifiers are <em>decades</em> old.</h2>
+  <p class="sub rv">Credit scorecards. Logistic regression. Fraud models. BERT fine-tunes. Text in, <b>a probability you can trust</b> out. The output shape of Jev is not news.</p>
+</section>
+
+<!-- 3 -->
+<section data-n="03" style="--accent:var(--rose)">
+  <p class="kicker rv">The catch</p>
+  <h2 class="rv">Each one needed thousands of labels. <em>Per&nbsp;question.</em></h2>
+  <div class="chips rv" id="chips"></div>
+  <p class="sub rv">New question = new dataset, new training run, new model to maintain. So most simple judgments were never automated.</p>
+</section>
+
+<!-- 4 -->
+<section data-n="04" class="light" style="--accent:var(--pink)">
+  <div class="grid2">
+    <div>
+      <p class="kicker rv">Then LLMs arrived</p>
+      <h2 class="rv">Zero labels. But the probabilities <em>lie.</em></h2>
+      <p class="sub rv"><b>Calibrated</b> = when it says 80%, it's right about 80% of the time. Chat models are trained to give answers people prefer, which pushes them to sound sure.</p>
+    </div>
+    <div class="rv">
+      <div class="row" style="margin-bottom:12px">
+        <button class="on" data-cal="good">Calibrated</button>
+        <button data-cal="bad">Overconfident</button>
+      </div>
+      <div class="svgwrap" id="relplot"></div>
+      <p class="small">Illustrative curves, not measured data. Points on the diagonal = honest probabilities.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section data-n="05" style="--accent:var(--pink)">
+  <p class="kicker rv">What Jev changes</p>
+  <h2 class="rv wide">The empty quadrant.</h2>
+  <div class="quad rv">
+    <div></div><div class="ax">Needs labelled data</div><div class="ax">No labels needed</div>
+    <div class="ax v">Calibrated</div>
+    <div class="q">Trained classifiers<small>Reliable, but one dataset per question</small></div>
+    <div class="q jev">Jev<small>Ask a new question in plain English, get an honest probability</small></div>
+    <div class="ax v">Not calibrated</div>
+    <div class="q" style="opacity:.4">Bad classifiers<small>The worst of both</small></div>
+    <div class="q">LLMs<small>Flexible, but the confidence is theatre</small></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section data-n="06" class="light" style="--accent:var(--teal)">
+  <p class="kicker rv">How? Not the architecture</p>
+  <h2 class="rv wide">A different <em>training target.</em></h2>
+  <div class="grid2" style="margin-top:28px;align-items:start">
+    <div class="rv card"><span class="tag" style="background:#bbb">RLHF · chat models</span><p class="sub" style="margin-top:12px">Rewarded for answers <b>people like</b>. Result: confident, agreeable, sometimes wrong.</p></div>
+    <div class="rv card"><span class="tag">RLCD · Jev</span><p class="sub" style="margin-top:12px">Rewarded for <b>honest probabilities</b> on quick decisions. Result: says "I'm not sure" when it isn't.</p></div>
+  </div>
+  <p class="small rv">That's why the open-weight clones that just restrict an LLM to A/B/C/D tokens miss the point: "You've changed the interface, not the objective." Marius Vach</p>
+</section>
+
+<!-- 7 -->
+<section data-n="07" style="--accent:var(--pink)">
+  <p class="kicker rv">The API in one slide · real responses</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">State in. <em>Three kinds of question.</em></h2>
+  <div class="row rv" style="margin-top:20px"><button class="on" data-tk="clear">Clear ticket</button><button data-tk="ambiguous">Ambiguous ticket</button></div>
+  <div class="state rv" id="tkstate"></div>
+  <div class="prims rv" id="prims"></div>
+  <p class="small rv" id="tkmeta"></p>
+</section>
+
+<!-- 8 -->
+<section data-n="08" class="light" style="--accent:var(--orchid)">
+  <div class="grid2">
+    <div>
+      <p class="kicker rv">Confidence</p>
+      <h2 class="rv">A model that can say <em>"not sure."</em></h2>
+      <p class="sub rv">Confidence comes from the <b>shape</b> of the distribution. Use it in code: act automatically, ask for a check, or send to a human.</p>
+      <p class="small rv">On the ambiguous ticket, Jev's frustration score came back with confidence <b id="ambconf"></b>. That's the signal to route it to a person.</p>
+    </div>
+    <div class="rv card">
+      <label class="ctl">Probability on the top option (of 3) <span id="cpv"></span></label>
+      <input type="range" min="34" max="100" value="80" id="cp">
+      <div id="cbars" style="margin-top:16px"></div>
+      <div class="row" style="justify-content:space-between;margin-top:10px">
+        <div><div class="small" style="margin:0">confidence</div><div class="big" id="cval"></div></div>
+        <div id="caction" class="tag" style="font-size:14px;padding:8px 12px"></div>
+      </div>
+      <p class="small">Formula from TypeSafe's docs: (n·max − 1)/(n − 1). Thresholds 0.5 / 0.8 are illustrative.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section data-n="09" style="--accent:var(--teal)">
+  <div class="grid2">
+    <div>
+      <p class="kicker rv">Fan-out · measured today</p>
+      <h2 class="rv">Read once. Ask <em>fifty</em> questions.</h2>
+      <p class="sub rv">Questions run in parallel and in isolation, so they don't pollute each other. You pay for the document once.</p>
+      <p class="small rv" id="fanmeta"></p>
+    </div>
+    <div class="rv">
+      <div class="lat" id="lat"></div>
+      <div class="topics" id="topics"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section data-n="10" class="light" style="--accent:var(--pink)">
+  <p class="kicker rv">Cost · $0.042 per million input tokens, output free</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">What does 10,000 documents × 20 questions cost?</h2>
+  <div class="grid2 rv" style="margin-top:24px;align-items:start">
+    <div class="card">
+      <label class="ctl">Documents <span id="v_docs"></span></label><input type="range" id="docs" min="100" max="1000000" step="100" value="10000">
+      <label class="ctl">Tokens per document <span id="v_tok"></span></label><input type="range" id="tok" min="500" max="30000" step="500" value="8000">
+      <label class="ctl">Questions per document <span id="v_q"></span></label><input type="range" id="q" min="1" max="100" value="20">
+      <div class="grid2" style="gap:12px;margin-top:12px">
+        <label class="ctl">Small LLM $/M input<input type="number" id="llmp" value="0.05" step="0.01"></label>
+        <label class="ctl">Cost per human label $<input type="number" id="lab" value="1" step="0.5"></label>
+      </div>
+    </div>
+    <div>
+      <table id="costt"></table>
+      <p class="small">The LLM row is one call per question (each re-reads the document) and ignores output tokens, which flatters the LLM. $0.05 is GPT-5 Nano's input price as quoted by Simon Willison. The classifier row assumes 500 labels per question and ignores training and maintenance.</p>
+    </div>
+  </div>
+</section>
+
+<!-- JevBench -->
+<section data-n="" style="--accent:var(--teal)">
+  <p class="kicker rv">Independent benchmark · JevBench v1.5.4, 1,624 decisions</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Not the smartest. The <em>cheapest and fastest</em> that's still good.</h2>
+  <div class="rv" style="overflow-x:auto;margin-top:22px"><table>
+    <tr><th>System</th><th>Intelligence</th><th>Calibration</th><th>$ / 1k decisions</th><th>Median latency</th></tr>
+    <tr style="color:var(--teal)"><td><b>Jev 1.13</b></td><td class="n">72.0</td><td class="n">88.0</td><td class="n">$0.032</td><td class="n">0.62 s</td></tr>
+    <tr><td>GPT-6 Luna (medium)</td><td class="n">96.2</td><td class="n">95.6</td><td class="n">$0.11</td><td class="n">1.56 s</td></tr>
+    <tr><td>DeepSeek V4.1 Flash</td><td class="n">93.7</td><td class="n">96.9</td><td class="n">$0.50</td><td class="n">1.78 s</td></tr>
+    <tr><td>Gemini 3.1 Flash-Lite</td><td class="n">77.6</td><td class="n">74.7</td><td class="n">$0.22</td><td class="n">0.86 s</td></tr>
+    <tr style="color:var(--mute)"><td>kev 8B (open clone)</td><td class="n">48.3</td><td class="n">71.0</td><td class="n">$0.097</td><td class="n">0.51 s</td></tr>
+    <tr style="color:var(--mute)"><td>GLiNER 2.5 (zero-shot classifier)</td><td class="n">9.2</td><td class="n">55.9</td><td class="n">$0.003</td><td class="n">0.47 s</td></tr>
+  </table></div>
+  <p class="small rv">Jev beats rerankers, zero-shot classifiers and the open clones. LLMs with structured output score higher on accuracy and calibration, at 3–15× the cost and 2.5× the latency. Choose on intelligence per dollar, not intelligence alone. Source: <a href="https://benchmarkheaven.com/jev-models">benchmarkheaven.com/jev-models</a></p>
+</section>
+
+<!-- 11 -->
+<section data-n="11" style="--accent:var(--amber)">
+  <div class="burst" style="width:40vw;height:40vw;background:var(--amber);left:-14vw;bottom:-18vw;opacity:.3"></div>
+  <p class="kicker rv">Now the important bit</p>
+  <h2 class="rv">But it is <em>System 1.</em></h2>
+  <p class="sub rv">Kahneman's fast, intuitive thinking. Jev <b>doesn't reason, explain, write, or do maths.</b> It makes the kind of call a knowledgeable person makes in a few seconds, and nothing more.</p>
+</section>
+
+<!-- 12 -->
+<section data-n="12" class="light" style="--accent:var(--red)">
+  <p class="kicker rv">Where it breaks · measured today</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Out of its depth, it mostly <em>says so.</em></h2>
+  <div class="grid2 rv" style="align-items:start;margin-top:18px">
+    <table id="hardt"></table>
+    <div>
+      <div class="card" id="countcard"></div>
+      <div class="card" id="negcard" style="margin-top:12px"></div>
+    </div>
+  </div>
+  <p class="small rv">Rule of thumb from TypeSafe's own "jaggedness" docs: <b>numbers, dates, counting, multi-hop logic, long irrelevant context → do it in code.</b> Probabilities near 0.5 aren't bugs; they're your cue to stop.</p>
+</section>
+
+<!-- 13 -->
+<section data-n="13" style="--accent:var(--pink)">
+  <p class="kicker rv">The question everyone asks</p>
+  <h2 class="rv wide">"Can Jev route our LLM calls?"</h2>
+  <p class="sub rv">Click to flip. Which of these are System 1 questions?</p>
+  <div class="cards rv" id="cards"></div>
+</section>
+
+<!-- 14 -->
+<section data-n="14" class="light" style="--accent:var(--pink)">
+  <p class="kicker rv">It will answer anyway · real responses</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">"Which model?" gets a confident answer. <em>Nobody can check it.</em></h2>
+  <div class="rv" style="overflow-x:auto;margin-top:18px"><table id="routet"></table></div>
+  <p class="small rv">The "which model" answers look plausible. But "best model" depends on things that aren't in the request: model capabilities, tools, cost, your quality bar. You can't label it without running every model. The feature questions on the right can each be checked with 50 human labels, and your routing table stays in code.</p>
+</section>
+
+<!-- 15 -->
+<section data-n="" style="--accent:var(--rose)">
+  <p class="kicker rv">Someone spent $1,000 finding out · Theo (t3.gg), 26 Sep</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Jev as a model router: <em>same score, 4× slower.</em></h2>
+  <div class="grid2 rv" style="margin-top:22px;align-items:start">
+    <table>
+      <tr><th>DeepSWE, 20 tasks</th><th>Score</th><th>$ / task</th><th>Min / task</th></tr>
+      <tr style="color:var(--rose)"><td><b>Jev Router</b></td><td class="n">80%</td><td class="n">$1.50</td><td class="n">19.9</td></tr>
+      <tr><td>GPT-6 Astra low</td><td class="n">80%</td><td class="n">$1.46</td><td class="n">4.6</td></tr>
+      <tr><td>GPT-6 Astra xhigh</td><td class="n">85%</td><td class="n">$4.42</td><td class="n">12.8</td></tr>
+    </table>
+    <div>
+      <p class="sub" style="margin-top:0">"In order to know how much thinking a task requires, you have to think."</p>
+      <p class="small">The router sent 59% of calls to DeepSeek 4.1 Flash ("basically just a DeepSeek 4.1 flash router") and averaged 104 agent steps per task against Astra's 19. It's a small sample (20 tasks, 1 attempt each) and it tests the router product rather than Jev's classification. The lesson still holds: just pick a decent model.</p>
+      <p class="small"><a href="https://x.com/theo/status/2103774771788108008">Theo's tweet</a> · <a href="https://www.youtube.com/watch?v=vu8X3YroB-w">video</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- Phishing -->
+<section data-n="" style="--accent:var(--teal)">
+  <p class="kicker rv">Same model, different question design · PhishNChips, 2,000 emails</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">One big question: <span class="bad">62.6%.</span> Five small ones: <em>95.0%.</em></h2>
+  <div class="grid2 rv" style="margin-top:24px;align-items:start">
+    <table>
+      <tr><th>Phishing detection</th><th>Accuracy</th><th>$ / 1k emails</th></tr>
+      <tr><td>Jev, "is this phishing?"</td><td class="n bad">62.6%</td><td class="n">$0.038</td></tr>
+      <tr><td>Claude Haiku 4.5, one verdict</td><td class="n">81.3%</td><td class="n">$0.46</td></tr>
+      <tr style="color:var(--teal)"><td><b>Jev, 5 narrow signals + weights</b></td><td class="n">95.0%</td><td class="n">$0.038</td></tr>
+      <tr><td>Haiku 4.5, 5 signals</td><td class="n">93.2%</td><td class="n">$1.02</td></tr>
+    </table>
+    <div>
+      <p class="sub" style="margin-top:0">Decomposition took Jev from worst to best, at <b>12–27× lower cost</b> and 239 ms vs 687 ms median latency.</p>
+      <p class="small">The weights were fitted on 1,000 labelled emails and tested on the other 1,000, so decomposition still needs some labels, just far fewer than training a model. Source: <a href="https://www.beri.net/article/typesafe-jev-typed-decision-model-calibration-decomposition-shadow-eval">Anissel B., 17 Sep 2026</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- 16 -->
+<section data-n="16" class="light" style="--accent:var(--teal)">
+  <p class="kicker rv">The fix: decomposition · real responses</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Not "is this applicant creditworthy?" <em>Seven easy questions.</em></h2>
+  <div class="row rv" style="margin-top:18px"><button class="on" data-ap="A">Applicant A</button><button data-ap="B">Applicant B</button></div>
+  <div class="state rv" id="apstate"></div>
+  <div class="grid2 rv" style="align-items:start">
+    <div id="apq"></div>
+    <div class="card">
+      <div class="small" style="margin:0">narrative points (illustrative weights)</div>
+      <div class="score-out" id="apscore"></div>
+      <div id="apflag" style="margin:8px 0"></div>
+      <div class="small" style="margin:10px 0 4px">reason codes</div>
+      <ul class="reasons" id="apreasons"></ul>
+      <p class="small">Income, debt-to-income and credit history stay in code and bureau data. Jev only reads the free text.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 17 -->
+<section data-n="17" style="--accent:var(--amber)">
+  <p class="kicker rv">But</p>
+  <h2 class="rv">Your scorecard can still be <em>bad.</em></h2>
+  <p class="sub rv">Jev makes judgments cheap. It doesn't make your criteria right, or unbiased. <b>The win:</b> each small question can be tested on 50 human labels and a counterfactual (swap the name, does the score move?). One big "is this a good applicant?" can't be.</p>
+  <p class="small rv">Simon Willison asked Jev "Good city?" of every Bay Area city: Cupertino came top, East Palo Alto bottom. The bias lives in the model; decomposition makes it findable.</p>
+</section>
+
+<!-- 18 -->
+<section data-n="18" class="light" style="--accent:var(--pink)">
+  <p class="kicker rv">Where it's transformational</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Simple judgments, at <em>speed and scale</em>, where some noise is OK.</h2>
+  <div class="uc rv">
+    <div><b>Credit &amp; underwriting</b>Narrative signals as scorecard features, with <em>reason codes</em> for free</div>
+    <div><b>Insurance claims</b>Triage: injury mentioned? third party? fraud indicators? → fast-track or adjuster</div>
+    <div><b>KYC / AML alerts</b>Pre-screen alert narratives; confidence-gate the human queue</div>
+    <div><b>Complaints</b>Category, vulnerability flags, regulatory-reportable? across millions</div>
+    <div><b>Contracts</b>Fifty clause flags per document, one read</div>
+    <div><b>Search &amp; RAG</b>Rerank 100 BM25 hits; drop irrelevant passages before the LLM sees them</div>
+    <div><b>LLM guardrails</b>Screen every prompt and reply for cents</div>
+    <div><b>Intent routing</b>Route on "what's being asked", never "who's best"</div>
+    <div><b>Entity matching</b>"Are these two records the same company?"</div>
+  </div>
+</section>
+
+<!-- 19 -->
+<section data-n="19" style="--accent:var(--pink)">
+  <div class="burst" style="width:50vw;height:50vw;background:var(--pink);left:30vw;top:-20vw;opacity:.35"></div>
+  <p class="kicker rv">The one test to take home</p>
+  <p class="tests rv">Would a smart person know in <span>five seconds?</span></p>
+  <div class="grid2 rv" style="margin-top:40px;align-items:start">
+    <p class="sub" style="margin:0"><b class="ok">Yes →</b> Jev. Decompose, threshold on confidence, keep the maths in code, and test each question.<br><b class="bad">No →</b> an LLM, a reasoning model, or a human.</p>
+    <ul class="src">
+      <li><a href="https://docs.typesafe.ai/introduction">TypeSafe docs</a> · <a href="https://docs.typesafe.ai/model-jaggedness/jev-1.13">jaggedness</a></li>
+      <li><a href="https://simonwillison.net/2026/Sep/21/jev/">Simon Willison: a new shape of LLM</a></li>
+      <li><a href="https://blog.mariusvach.com/posts/thoughts-on-jev">Marius Vach: Thoughts on Jev</a></li>
+      <li><a href="https://www.latent.space/p/jev">Latent Space: Prod, not God</a></li>
+    </ul>
+  </div>
+</section>
+
+<script src="data.js"></script>
+<script>
+const R = window.RECORDED, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const pct = x => Math.round(x * 100) + '%', f2 = x => (+x).toFixed(2);
+
+// --- navigation
+const secs = $$('section');
+secs.forEach((s, i) => s.dataset.n = String(i + 1).padStart(2, '0'));
+let ready = false;
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && ready) { e.target.classList.add('in'); cur = secs.indexOf(e.target); $('#prog').style.width = ((cur + 1) / secs.length * 100) + '%'; history.replaceState(null, '', '#' + (cur + 1)); } }), { threshold: .5 });
+let cur = 0; secs.forEach(s => io.observe(s));
+const go = i => { cur = Math.max(0, Math.min(secs.length - 1, i)); secs[cur].scrollIntoView(); };
+addEventListener('keydown', e => {
+  if (e.target.matches('input')) return;
+  if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+});
+history.scrollRestoration = 'manual';
+const fromHash = () => go((+location.hash.slice(1) || 1) - 1);
+addEventListener('load', () => { document.documentElement.style.scrollBehavior = 'auto'; fromHash(); secs[cur].classList.add('in'); document.documentElement.style.scrollBehavior = ''; ready = true; });
+addEventListener('hashchange', fromHash);
+const toggle = (attr, fn) => $$(`[data-${attr}]`).forEach(b => b.onclick = () => { $$(`[data-${attr}]`).forEach(x => x.classList.toggle('on', x === b)); fn(b.dataset[attr]); });
+
+// --- 3: label chips
+$('#chips').innerHTML = Array.from({ length: 360 }, (_, i) => `<i style="animation-delay:${i * 6}ms"></i>`).join('');
+
+// --- 4: reliability diagram (illustrative)
+function relplot(kind) {
+  const W = 420, H = 420, p = 44, sx = x => p + x * (W - 2 * p), sy = y => H - p - y * (H - 2 * p);
+  const pts = kind === 'good'
+    ? [[.05, .06], [.15, .13], [.25, .27], [.35, .33], [.45, .47], [.55, .53], [.65, .67], [.75, .73], [.85, .86], [.95, .93]]
+    : [[.05, .21], [.15, .3], [.25, .36], [.35, .41], [.45, .47], [.55, .5], [.65, .55], [.75, .6], [.85, .64], [.95, .7]];
+  const sizes = kind === 'good' ? [9, 6, 5, 5, 5, 5, 5, 5, 6, 9] : [16, 4, 3, 2, 2, 2, 2, 3, 5, 18];
+  const col = kind === 'good' ? 'var(--teal)' : 'var(--red)';
+  $('#relplot').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Reliability diagram">
+    <rect x="${p}" y="${p}" width="${W - 2 * p}" height="${H - 2 * p}" fill="none" stroke="currentColor" stroke-opacity=".2"/>
+    <line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(1)}" stroke="currentColor" stroke-dasharray="4 5" stroke-opacity=".5"/>
+    <polyline fill="none" stroke="${col}" stroke-width="3" points="${pts.map(([x, y]) => sx(x) + ',' + sy(y)).join(' ')}" style="transition:all .5s"/>
+    ${pts.map(([x, y], i) => `<circle cx="${sx(x)}" cy="${sy(y)}" r="${sizes[i]}" fill="${col}" fill-opacity=".85"/>`).join('')}
+    <text x="${W / 2}" y="${H - 10}" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="currentColor">model says (predicted probability)</text>
+    <text x="14" y="${H / 2}" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="currentColor" transform="rotate(-90 14 ${H / 2})">actually true (fraction)</text>
+    <text x="${sx(.05)}" y="${sy(.92)}" font-family="JetBrains Mono" font-size="12" fill="${col}">${kind === 'good' ? 'says 80% → right 80%' : 'says 95% → right 70%'}</text>
+  </svg>`;
+}
+relplot('good'); toggle('cal', relplot);
+
+// --- 7: primitives
+function noulCard(name, q, a) { return `<div class="card"><span class="tag" style="background:var(--rose)">Noul · yes/no</span><h3>${name}</h3><p class="q">${q}</p><div class="big">${f2(a.noul)}</div><div class="bar"><i style="width:${pct(a.noul)}"></i></div><p class="small" style="margin:0">P(statement is true)</p></div>`; }
+function distCard(kind, name, q, a, labels) {
+  const rows = Object.keys(labels).map(k => `<div class="mono" style="font-size:12px;display:flex;justify-content:space-between"><span>${labels[k]}</span><span>${f2(a.probabilities[k] ?? 0)}</span></div><div class="bar"><i style="width:${pct(a.probabilities[k] ?? 0)}"></i></div>`).join('');
+  const val = kind === 'Choice' ? a.choice : f2(a.score);
+  return `<div class="card"><span class="tag" style="background:${kind === 'Choice' ? 'var(--teal)' : 'var(--amber)'}">${kind} · ${kind === 'Choice' ? 'pick one' : 'rubric'}</span><h3>${name}</h3><p class="q">${q}</p><div class="big" style="font-size:clamp(36px,4vw,56px)">${val}</div>${rows}<p class="small" style="margin:0">confidence <b>${f2(a.confidence)}</b></p></div>`;
+}
+function showTicket(k) {
+  const t = R.primitives[k], a = t.response.answers;
+  $('#tkstate').textContent = t.state;
+  $('#prims').innerHTML =
+    noulCard('is_urgent', 'The message conveys urgency or time-sensitivity', a.is_urgent) +
+    distCard('Choice', 'department', 'Which team should handle this', a.department, { billing: 'billing', technical: 'technical', sales: 'sales' }) +
+    distCard('Score', 'frustration', 'How frustrated the customer appears', a.frustration, { 0: '0 calm', 1: '1 frustrated', 2: '2 very angry' });
+  $('#tkmeta').textContent = `${t.response.model} · ${t.response.usage.input_tokens} input tokens · ${Math.round(t.response.latency_s * 1000)} ms round trip · captured ${R.captured}`;
+}
+showTicket('clear'); toggle('tk', showTicket);
+$('#ambconf').textContent = f2(R.primitives.ambiguous.response.answers.frustration.confidence);
+
+// --- 8: confidence explorer
+function conf() {
+  const p = $('#cp').value / 100, rest = (1 - p) / 2, ps = [p, rest, rest], c = Math.max(0, (3 * p - 1) / 2);
+  $('#cpv').textContent = pct(p);
+  $('#cbars').innerHTML = ['A', 'B', 'C'].map((o, i) => `<div class="mono" style="font-size:12px">${o} · ${pct(ps[i])}</div><div class="bar"><i style="width:${pct(ps[i])}"></i></div>`).join('');
+  $('#cval').textContent = f2(c);
+  const [txt, col] = c >= .8 ? ['ACT AUTOMATICALLY', 'var(--green)'] : c >= .5 ? ['ASK TO CONFIRM', 'var(--amber)'] : ['SEND TO A HUMAN', 'var(--red)'];
+  $('#caction').textContent = txt; $('#caction').style.background = col;
+}
+$('#cp').oninput = conf; conf();
+
+// --- 9: fan-out
+const F = R.fanout, maxL = Math.max(F[1].median_latency_s, F[10].median_latency_s, F[50].median_latency_s) * 1.25;
+$('#lat').innerHTML = [1, 10, 50].map(n => `<div><b data-h="${F[n].median_latency_s / maxL * 100}"></b><span><strong>${Math.round(F[n].median_latency_s * 1000)} ms</strong><br>${n} question${n > 1 ? 's' : ''}<br>${F[n].input_tokens.toLocaleString()} tokens</span></div>`).join('');
+$('#topics').innerHTML = Object.entries(F.answers_50).map(([t, v]) => `<span class="${v > .5 ? 'y' : ''}" title="${f2(v)}">${t}</span>`).join('');
+$('#fanmeta').textContent = `Document: ${F.doc_title} (${Math.round(F.doc_chars / 1000)}k characters). Median of 3 runs each. 50 "does it discuss X?" questions cost ${F[50].input_tokens - F[1].input_tokens} extra tokens. Highlighted = Jev says yes.`;
+new IntersectionObserver(es => es.forEach(e => e.isIntersecting && $$('#lat b').forEach(b => b.style.height = b.dataset.h + '%')), { threshold: .4 }).observe($('#lat'));
+
+// --- 10: cost calculator
+function money(x) { return x >= 1e6 ? '$' + (x / 1e6).toFixed(1) + 'M' : x >= 1000 ? '$' + Math.round(x).toLocaleString() : x >= 1 ? '$' + x.toFixed(2) : '$' + x.toFixed(3); }
+function cost() {
+  const d = +$('#docs').value, t = +$('#tok').value, q = +$('#q').value, lp = +$('#llmp').value, lab = +$('#lab').value;
+  $('#v_docs').textContent = d.toLocaleString(); $('#v_tok').textContent = t.toLocaleString(); $('#v_q').textContent = q;
+  const jev = d * (t + 25 * q) * 0.042 / 1e6, llm = d * q * (t + 60) * lp / 1e6, clf = q * 500 * lab;
+  const max = Math.max(jev, llm, clf);
+  const row = (n, v, c, note) => `<tr><td style="width:34%"><b>${n}</b><div class="small" style="margin:2px 0 0">${note}</div></td><td style="width:44%"><div class="bar" style="height:22px"><i style="width:${Math.max(.6, v / max * 100)}%;background:${c}"></i></div></td><td class="n">${money(v)}</td></tr>`;
+  $('#costt').innerHTML = row('Jev', jev, 'var(--pink)', 'document read once') + row('Small LLM', llm, '#999', 'one call per question') + row('Trained classifiers', clf, '#999', '500 labels × questions');
+}
+['docs', 'tok', 'q', 'llmp', 'lab'].forEach(id => $('#' + id).oninput = cost); cost();
+
+// --- 12: jagged
+const J = R.jagged;
+$('#hardt').innerHTML = '<tr><th>Question (single Noul)</th><th>Truth</th><th>Jev P(yes)</th></tr>' + J.hard.map(h => {
+  const right = (h.p_yes > .5) === h.truth, unsure = h.p_yes > .3 && h.p_yes < .7;
+  const cls = unsure ? 'meh' : right ? 'ok' : 'bad';
+  return `<tr><td>${h.state}<br><span style="color:var(--mute)">${h.question}</span></td><td>${h.truth ? 'yes' : 'no'}</td><td class="n ${cls}">${f2(h.p_yes)}${unsure ? ' ?' : right ? ' ✓' : ' ✗'}</td></tr>`;
+}).join('');
+const C = J.counting24;
+$('#countcard').innerHTML = `<span class="tag" style="background:var(--amber)">Counting</span><p class="mono" style="font-size:13px;margin:10px 0">"How many of these ${C.items.length} words are fruits?" (truth: ${C.truth})</p>
+  <div class="row" style="gap:24px"><div><div class="small" style="margin:0">one Choice question</div><div class="big" style="font-size:44px;color:var(--red)">${C.one_question.choice}</div><div class="small" style="margin:0">confidence ${f2(C.one_question.confidence)}</div></div>
+  <div><div class="small" style="margin:0">${C.items.length} Nouls + sum in code</div><div class="big" style="font-size:44px;color:var(--green)">${C.per_item_count}</div><div class="small" style="margin:0">exact</div></div></div>`;
+const N = J.negation;
+$('#negcard').innerHTML = `<span class="tag" style="background:var(--amber)">Logic between questions</span><p class="mono" style="font-size:13px;margin:10px 0">"${N.state}"</p>
+  <p class="mono" style="font-size:14px">P(asking for refund) <b>${f2(N.refund)}</b> + P(asking for something else) <b>${f2(N.not_refund)}</b> = <b class="bad">${f2(N.refund + N.not_refund)}</b></p><p class="small" style="margin:6px 0 0">Separate questions aren't forced to agree. Ask each thing one way.</p>`;
+
+// --- 13: sorting game
+const CARDS = [
+  ['Does this request ask for PowerPoint slides to be created?', 'yes', 'Obvious to anyone reading it. Easy to label 50 examples and check.'],
+  ['Which model should handle this request?', 'no', 'Needs knowledge of the models, which isn\'t in the request. No obvious right answer, so nothing to test against.'],
+  ['Is this customer email a complaint?', 'yes', 'Classic five-second call.'],
+  ['Is this the right investment strategy for the client?', 'no', 'Expert reasoning over many factors. You\'d want a rationale.'],
+  ['Does the applicant mention payday loans?', 'yes', 'A literal, checkable signal in the text.'],
+  ['Is debt-to-income above 35%?', 'code', 'Jev got this one right in our test, but arithmetic in code is free and exact.'],
+  ['Does this contract clause cap the supplier\'s liability?', 'yes', 'A lawyer knows at a glance. Jev can be asked 50 of these per contract in one call.'],
+  ['Is this pull request safe to merge?', 'no', 'System 2: it needs tracing logic across files.'],
+];
+const VERD = { yes: ['System 1 ✓', 'yes'], no: ['Not System 1 ✗', 'no'], code: ['Just use code', 'code'] };
+$('#cards').innerHTML = CARDS.map(([q, v, why]) => `<button class="flip" aria-label="${q}"><div><div class="f">${q}<small>CLICK TO REVEAL</small></div><div class="b ${VERD[v][1]}"><strong>${VERD[v][0]}</strong>${why}</div></div></button>`).join('');
+$$('.flip').forEach(c => c.onclick = () => c.classList.toggle('open'));
+
+// --- 14: routing table
+const yn = v => `<td class="n" style="color:${v > .5 ? 'var(--green)' : 'var(--mute)'};${v > .5 ? '' : 'font-weight:400'}">${f2(v)}</td>`;
+$('#routet').innerHTML = `<tr><th>Request</th><th>"Which model?"</th><th>conf.</th><th>asks for slides</th><th>has code</th><th>needs current info</th><th>open research problem</th></tr>` +
+  R.routing.map(r => `<tr><td>${r.request}</td><td class="n" style="color:var(--pink)">${r.which_model.choice}</td><td class="n">${f2(r.which_model.confidence)}</td>${yn(r.asks_for_slides)}${yn(r.contains_code)}${yn(r.needs_current_info)}${yn(r.open_research_problem)}</tr>`).join('');
+
+
+// --- 16: scorecard
+const W = { employment_stability: 30, income_irregular: -40, other_debts: -25, high_cost_credit: -60, financial_distress: -50, purpose_specific: 20 };
+const LBL = {
+  employment_stability: ['Score', 'How stable is the applicant\'s employment? (0–3)'],
+  income_irregular: ['Noul', 'Describes irregular or unpredictable income'],
+  other_debts: ['Noul', 'Mentions borrowing from other lenders besides a mortgage'],
+  high_cost_credit: ['Noul', 'Mentions payday loans or high-cost credit'],
+  financial_distress: ['Noul', 'Describes difficulty paying essential bills'],
+  purpose_specific: ['Noul', 'Describes a specific, concrete use for the money'],
+  purpose: ['Choice', 'Main purpose of the loan'],
+};
+const REASON = { income_irregular: 'Irregular income described', other_debts: 'Other borrowing mentioned', high_cost_credit: 'High-cost credit use', financial_distress: 'Difficulty paying bills', employment_stability: 'Employment not long-term stable', purpose_specific: 'Loan purpose vague' };
+function showAp(k) {
+  const ap = R.scorecard[k], a = ap.response.answers;
+  $('#apstate').textContent = ap.narrative;
+  let pts = 500, contrib = [], unsure = [];
+  $('#apq').innerHTML = Object.keys(LBL).map(q => {
+    const x = a[q], [t, d] = LBL[q];
+    let v, shown;
+    if (t === 'Noul') { v = x.noul; shown = f2(v); if (v > .3 && v < .7) unsure.push(d); }
+    else if (t === 'Score') { v = x.score / 3; shown = f2(x.score) + ' / 3'; if (x.confidence < .6) unsure.push(d); }
+    else { shown = x.choice.replace('_', ' '); v = x.confidence; }
+    if (q in W) { const c = q === 'employment_stability' ? W[q] * x.score : W[q] * v; pts += c; contrib.push([q, q === 'employment_stability' ? c - 90 : q === 'purpose_specific' ? c - 20 : c]); }
+    return `<div style="display:grid;grid-template-columns:70px 1fr 90px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--fg) 12%,transparent)"><span class="tag" style="background:${t === 'Noul' ? 'var(--rose)' : t === 'Score' ? 'var(--amber)' : 'var(--teal)'};text-align:center">${t}</span><span class="mono" style="font-size:13px">${d}</span><span class="mono" style="text-align:right;font-weight:800">${shown}</span></div>`;
+  }).join('');
+  $('#apscore').textContent = Math.round(pts);
+  $('#apscore').style.color = pts > 520 ? 'var(--green)' : pts > 420 ? 'var(--amber)' : 'var(--red)';
+  const reasons = contrib.filter(([, c]) => c < -10).sort((x, y) => x[1] - y[1]).slice(0, 3);
+  $('#apreasons').innerHTML = reasons.length ? reasons.map(([q, c]) => `<li>${REASON[q]} <b style="float:right">${Math.round(c)}</b></li>`).join('') : '<li>None material</li>';
+  $('#apflag').innerHTML = unsure.length ? `<span class="tag" style="background:var(--amber)">Review: unsure on "${unsure.join('", "')}"</span>` : `<span class="tag" style="background:var(--green)">No uncertain answers</span>`;
+}
+showAp('A'); toggle('ap', showAp);
+</script>
+</body>
+</html>
