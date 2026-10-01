@@ -132,6 +132,18 @@ section.in .quad .q.jev{transform:none;opacity:1}
 .dbw .st{font-size:13px;text-align:right;line-height:1.3}
 .dbw .st span{color:var(--mute)}
 @media(max-width:700px){.dbw .db{grid-template-columns:80px 1fr 52px;gap:8px}}
+.dp .dpr{display:grid;grid-template-columns:minmax(150px,1.2fr) 1fr;gap:16px;align-items:center;padding:1px 0}
+.dp .q{font:400 clamp(12px,.85vw,16px)/1.25 var(--mono)}
+.dp .q small{color:var(--mute);font-size:11px;margin-left:6px}
+.dp .ax{position:relative;height:clamp(22px,1.8vw,30px);border-bottom:1px solid color-mix(in srgb,var(--fg) 15%,transparent)}
+.dp .ax.lab{height:16px;border:none;font:600 10px var(--mono);color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+.dp .ax.lab span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.dp .ax.lab span:first-child{transform:none}.dp .ax.lab span:last-child{transform:translateX(-100%)}
+.dp .band{position:absolute;left:30%;width:40%;top:0;bottom:0;background:color-mix(in srgb,var(--amber) 22%,transparent)}
+.dp .pt{position:absolute;top:calc(50% - 7px);width:14px;height:14px;border-radius:50%;margin-left:-7px}
+.dp .ax b{position:absolute;top:calc(50% - 9px);font:700 clamp(11px,.8vw,14px) var(--mono);transform:translateX(12px)}
+.dp .grp{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:8px 0 0}
+@media(max-width:700px){.dp .dpr{grid-template-columns:1fr 1fr;gap:8px}}
 </style>
 </head>
 <body>
@@ -290,14 +302,11 @@ section.in .quad .q.jev{transform:none;opacity:1}
 <section data-n="12" class="light" style="--accent:var(--red)">
   <p class="kicker rv">Where it breaks · measured today</p>
   <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Out of its depth, it mostly <em>says so.</em></h2>
-  <div class="grid2 rv" style="align-items:start;margin-top:18px">
-    <table id="hardt"></table>
-    <div>
-      <div class="card" id="countcard"></div>
-      <div class="card" id="negcard" style="margin-top:12px"></div>
-    </div>
+  <div class="grid2 rv" style="align-items:start;margin-top:18px;grid-template-columns:1.6fr 1fr">
+    <div class="dp" id="dotplot"></div>
+    <div class="card" id="countcard"></div>
   </div>
-  <p class="small rv">Rule of thumb from TypeSafe's own "jaggedness" docs: <b>numbers, dates, counting, multi-hop logic, long irrelevant context → do it in code.</b> A probability near 0.5 is Jev telling you it doesn't know. Believe it.</p>
+  <p class="small rv">Rule of thumb from TypeSafe's own "jaggedness" docs: <b>numbers, dates, counting, multi-hop logic, long irrelevant context → do it in code.</b> When a probability lands in the shaded band, Jev is telling you it doesn't know. Believe it.</p>
 </section>
 
 <!-- 13 -->
@@ -488,18 +497,21 @@ function cost() {
 
 // --- 12: jagged
 const J = R.jagged;
-$('#hardt').innerHTML = '<tr><th>Question (single Noul)</th><th>Truth</th><th>Jev P(yes)</th></tr>' + J.hard.map(h => {
-  const right = (h.p_yes > .5) === h.truth, unsure = h.p_yes > .3 && h.p_yes < .7;
-  const cls = unsure ? 'meh' : right ? 'ok' : 'bad';
-  return `<tr><td>${h.state}<br><span style="color:var(--mute)">${h.question}</span></td><td>${h.truth ? 'yes' : 'no'}</td><td class="n ${cls}">${f2(h.p_yes)}${unsure ? ' ?' : right ? ' ✓' : ' ✗'}</td></tr>`;
-}).join('');
+const EASY = ['Invoice 3 Mar 2025, paid 28/02/2025. Paid after the invoice?', 'Invoice 14 Jan 2025, paid 2025-02-03. Paid after?', 'Invoice 30 Nov 2024, paid 1 Dec 2024. Paid after?', 'Invoice 12/05/2025, paid 9 May 2025. Paid after?'];
+const HARD = ['Signed 2 days before the end of Q3, notice served 2 Oct. Within 7 days?', 'One-year policy from 29 Feb 2024, claim on 1 Mar 2025. After expiry?', 'Invoice 05/06/2025 (US format), paid 1 June 2025. Paid after?', 'Income £3,450, repayments £1,380. Debt-to-income above 35%?', 'Transactions 120.50, 89.99, 240.00, 15.75, 310.20, 99.00. Total above 880?', '"strawberry": exactly three r\'s?'];
+const dot = (label, p, truth) => {
+  const unsure = p > .3 && p < .7, right = (p > .5) === truth;
+  const col = unsure ? 'var(--amber)' : right ? 'var(--green)' : 'var(--red)';
+  return `<div class="dpr"><span class="q">${label}<small>truth: ${truth ? 'yes' : 'no'}</small></span><div class="ax"><i class="band"></i><i class="pt" style="left:${p * 100}%;background:${col}"></i><b style="left:${p * 100}%;${p > .85 ? 'transform:translateX(calc(-100% - 10px))' : ''}">${f2(p)}</b></div></div>`;
+};
+$('#dotplot').innerHTML =
+  `<div class="dpr hd"><span></span><div class="ax lab"><span style="left:0">0 = no</span><span style="left:50%">unsure</span><span style="left:100%">1 = yes</span></div></div>` +
+  `<p class="grp">Simple date comparisons</p>` + J.dates.map((d, i) => dot(EASY[i], d.p_after, d.truth)).join('') +
+  `<p class="grp">Harder: date arithmetic, sums, counting letters</p>` + J.hard.map((h, i) => dot(HARD[i], h.p_yes, h.truth)).join('');
 const C = J.counting24;
-$('#countcard').innerHTML = `<span class="tag" style="background:var(--amber)">Counting</span><p class="mono" style="font-size:13px;margin:10px 0">"How many of these ${C.items.length} words are fruits?" (truth: ${C.truth})</p>
-  <div class="row" style="gap:24px"><div><div class="small" style="margin:0">one Choice question</div><div class="big" style="font-size:44px;color:var(--red)">${C.one_question.choice}</div><div class="small" style="margin:0">confidence ${f2(C.one_question.confidence)}</div></div>
-  <div><div class="small" style="margin:0">${C.items.length} Nouls + sum in code</div><div class="big" style="font-size:44px;color:var(--green)">${C.per_item_count}</div><div class="small" style="margin:0">exact</div></div></div>`;
-const N = J.negation;
-$('#negcard').innerHTML = `<span class="tag" style="background:var(--amber)">Logic between questions</span><p class="mono" style="font-size:13px;margin:10px 0">"${N.state}"</p>
-  <p class="mono" style="font-size:14px">P(asking for refund) <b>${f2(N.refund)}</b> + P(asking for something else) <b>${f2(N.not_refund)}</b> = <b class="bad">${f2(N.refund + N.not_refund)}</b></p><p class="small" style="margin:6px 0 0">Separate questions aren't forced to agree. Ask each thing one way.</p>`;
+$('#countcard').innerHTML = `<span class="tag" style="background:var(--amber)">The fix: keep it in code</span><p class="mono" style="font-size:13px;margin:12px 0">"How many of these ${C.items.length} words are fruits?" (truth: ${C.truth})</p>
+  <div class="row" style="gap:24px"><div><div class="small" style="margin:0">one question</div><div class="big" style="font-size:44px;color:var(--amber)">${C.one_question.choice}</div><div class="small" style="margin:0">confidence ${f2(C.one_question.confidence)}: unsure</div></div>
+  <div><div class="small" style="margin:0">"is this a fruit?" × ${C.items.length}, summed in code</div><div class="big" style="font-size:44px;color:var(--green)">${C.per_item_count}</div><div class="small" style="margin:0">exact</div></div></div>`;
 
 // --- 13: sorting game
 const CARDS = [
