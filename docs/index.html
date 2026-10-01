@@ -141,14 +141,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <p class="kicker rv">Start with what isn't new</p>
   <h2 class="rv">Calibrated classifiers are <em>decades</em> old.</h2>
   <p class="sub rv">Credit scorecards. Logistic regression. Fraud models. BERT fine-tunes. Text in, <b>a probability you can trust</b> out. The output shape of Jev is not news.</p>
-</section>
-
-<!-- 3 -->
-<section data-n="03" style="--accent:var(--rose)">
-  <p class="kicker rv">The catch</p>
-  <h2 class="rv">Each one needed thousands of labels. <em>Per&nbsp;question.</em></h2>
-  <div class="chips rv" id="chips"></div>
-  <p class="sub rv">New question = new dataset, new training run, new model to maintain. So most simple judgments were never automated.</p>
+  <p class="sub rv"><b>The catch:</b> each one needed thousands of labels, per question. So most simple judgments were never automated.</p>
 </section>
 
 <!-- 4 -->
@@ -183,17 +176,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
     <div class="q" style="opacity:.4">Bad classifiers<small>The worst of both</small></div>
     <div class="q">LLMs<small>Flexible, but confidence is hit and miss, and rarely "unsure"</small></div>
   </div>
-</section>
-
-<!-- 6 -->
-<section data-n="06" class="light" style="--accent:var(--teal)">
-  <p class="kicker rv">How? Not the architecture</p>
-  <h2 class="rv wide">A different <em>training target.</em></h2>
-  <div class="grid2" style="margin-top:28px;align-items:start">
-    <div class="rv card"><span class="tag" style="background:#bbb">RLHF · chat models</span><p class="sub" style="margin-top:12px">Rewarded for answers <b>people like</b>. Result: confident, agreeable, sometimes wrong.</p></div>
-    <div class="rv card"><span class="tag">RLCD · Jev</span><p class="sub" style="margin-top:12px">Rewarded for <b>honest probabilities</b> on quick decisions. Result: says "I'm not sure" when it isn't.</p></div>
-  </div>
-  <p class="small rv">That's why the open-weight clones that just restrict an LLM to A/B/C/D tokens miss the point: "You've changed the interface, not the objective." Marius Vach</p>
+  <p class="small rv" style="font-size:15px">How? Not a new architecture but a new training target. Chat models are rewarded for answers <b>people like</b>; Jev is rewarded for <b>honest probabilities</b>. That's why clones that just restrict an LLM to A/B/C/D miss the point: "You've changed the interface, not the objective." (Marius Vach)</p>
 </section>
 
 <!-- 7 -->
@@ -204,28 +187,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <div class="state rv" id="tkstate"></div>
   <div class="prims rv" id="prims"></div>
   <p class="small rv" id="tkmeta"></p>
-</section>
-
-<!-- 8 -->
-<section data-n="08" class="light" style="--accent:var(--orchid)">
-  <div class="grid2">
-    <div>
-      <p class="kicker rv">Confidence</p>
-      <h2 class="rv">A model that can say <em>"not sure."</em></h2>
-      <p class="sub rv">Confidence comes from the <b>shape</b> of the distribution. Use it in code: act automatically, ask for a check, or send to a human.</p>
-      <p class="small rv">On the ambiguous ticket, Jev's frustration score came back with confidence <b id="ambconf"></b>. That's the signal to route it to a person.</p>
-    </div>
-    <div class="rv card">
-      <label class="ctl">Probability on the top option (of 3) <span id="cpv"></span></label>
-      <input type="range" min="34" max="100" value="80" id="cp">
-      <div id="cbars" style="margin-top:16px"></div>
-      <div class="row" style="justify-content:space-between;margin-top:10px">
-        <div><div class="small" style="margin:0">confidence</div><div class="big" id="cval"></div></div>
-        <div id="caction" class="tag" style="font-size:14px;padding:8px 12px"></div>
-      </div>
-      <p class="small">Formula from TypeSafe's docs: (n·max − 1)/(n − 1). Thresholds 0.5 / 0.8 are illustrative.</p>
-    </div>
-  </div>
+  <p class="sub rv" style="font-size:clamp(16px,1.4vw,21px)"><b>Confidence</b> comes from the shape of the distribution. Flip to the ambiguous ticket and watch frustration confidence drop. In code: act, ask for a check, or send it to a human.</p>
 </section>
 
 <!-- 9 -->
@@ -263,22 +225,6 @@ section.in .quad .q.jev{transform:none;opacity:1}
       <p class="small">The LLM row is one call per question (each re-reads the document) and ignores output tokens, which flatters the LLM. $0.05 is GPT-5 Nano's input price as quoted by Simon Willison. The classifier row assumes 500 labels per question and ignores training and maintenance.</p>
     </div>
   </div>
-</section>
-
-<!-- JevBench -->
-<section data-n="" style="--accent:var(--teal)">
-  <p class="kicker rv">Independent benchmark · JevBench v1.5.4, 1,624 decisions</p>
-  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Not the smartest. The <em>cheapest and fastest</em> that's still good.</h2>
-  <div class="rv" style="overflow-x:auto;margin-top:22px"><table>
-    <tr><th>System</th><th>Intelligence</th><th>Calibration</th><th>$ / 1k decisions</th><th>Median latency</th></tr>
-    <tr style="color:var(--teal)"><td><b>Jev 1.13</b></td><td class="n">72.0</td><td class="n">88.0</td><td class="n">$0.032</td><td class="n">0.62 s</td></tr>
-    <tr><td>GPT-6 Luna (medium)</td><td class="n">96.2</td><td class="n">95.6</td><td class="n">$0.11</td><td class="n">1.56 s</td></tr>
-    <tr><td>DeepSeek V4.1 Flash</td><td class="n">93.7</td><td class="n">96.9</td><td class="n">$0.50</td><td class="n">1.78 s</td></tr>
-    <tr><td>Gemini 3.1 Flash-Lite</td><td class="n">77.6</td><td class="n">74.7</td><td class="n">$0.22</td><td class="n">0.86 s</td></tr>
-    <tr style="color:var(--mute)"><td>kev 8B (open clone)</td><td class="n">48.3</td><td class="n">71.0</td><td class="n">$0.097</td><td class="n">0.51 s</td></tr>
-    <tr style="color:var(--mute)"><td>GLiNER 2.5 (zero-shot classifier)</td><td class="n">9.2</td><td class="n">55.9</td><td class="n">$0.003</td><td class="n">0.47 s</td></tr>
-  </table></div>
-  <p class="small rv">Jev beats rerankers, zero-shot classifiers and the open clones. LLMs with structured output score higher, at 3–15× the cost and 2.5× the latency. <b>Caveats on the calibration column:</b> the LLMs state their own probabilities (no logprobs), the gold labels were written by Claude Opus 5 and GPT-5.6 Sol, and about 60% of Jev's gap comes from 50 probability-arithmetic items. Source: <a href="https://benchmarkheaven.com/jev-models">benchmarkheaven.com/jev-models</a></p>
 </section>
 
 <!-- Calibration evidence -->
@@ -330,14 +276,6 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <h2 class="rv wide">"Can Jev route our LLM calls?"</h2>
   <p class="sub rv">Click to flip. Which of these are System 1 questions?</p>
   <div class="cards rv" id="cards"></div>
-</section>
-
-<!-- 14 -->
-<section data-n="14" class="light" style="--accent:var(--pink)">
-  <p class="kicker rv">It will answer anyway · real responses</p>
-  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">"Which model?" gets a confident answer. <em>Nobody can check it.</em></h2>
-  <div class="rv" style="overflow-x:auto;margin-top:18px"><table id="routet"></table></div>
-  <p class="small rv">The "which model" answers look plausible. But "best model" depends on things that aren't in the request: model capabilities, tools, cost, your quality bar. You can't label it without running every model. The feature questions on the right can each be checked with 50 human labels, and your routing table stays in code.</p>
 </section>
 
 <!-- 15 -->
@@ -480,9 +418,6 @@ function calplot(k) {
 $('#calbtns').innerHTML = [['sst2', 'Sentiment'], ['boolq', 'Passage Q&A'], ['agnews', 'News topic']].map(([k, l], i) => `<button data-calk="${k}" class="${i ? '' : 'on'}">${l}</button>`).join('');
 calplot('sst2'); toggle('calk', calplot);
 
-// --- 3: label chips
-$('#chips').innerHTML = Array.from({ length: 360 }, (_, i) => `<i style="animation-delay:${i * 6}ms"></i>`).join('');
-
 // --- 4: reliability diagram (illustrative)
 function relplot(kind) {
   const W = 420, H = 420, p = 44, sx = x => p + x * (W - 2 * p), sy = y => H - p - y * (H - 2 * p);
@@ -520,18 +455,6 @@ function showTicket(k) {
   $('#tkmeta').textContent = `${t.response.model} · ${t.response.usage.input_tokens} input tokens · ${Math.round(t.response.latency_s * 1000)} ms round trip · captured ${R.captured}`;
 }
 showTicket('clear'); toggle('tk', showTicket);
-$('#ambconf').textContent = f2(R.primitives.ambiguous.response.answers.frustration.confidence);
-
-// --- 8: confidence explorer
-function conf() {
-  const p = $('#cp').value / 100, rest = (1 - p) / 2, ps = [p, rest, rest], c = Math.max(0, (3 * p - 1) / 2);
-  $('#cpv').textContent = pct(p);
-  $('#cbars').innerHTML = ['A', 'B', 'C'].map((o, i) => `<div class="mono" style="font-size:12px">${o} · ${pct(ps[i])}</div><div class="bar"><i style="width:${pct(ps[i])}"></i></div>`).join('');
-  $('#cval').textContent = f2(c);
-  const [txt, col] = c >= .8 ? ['ACT AUTOMATICALLY', 'var(--green)'] : c >= .5 ? ['ASK TO CONFIRM', 'var(--amber)'] : ['SEND TO A HUMAN', 'var(--red)'];
-  $('#caction').textContent = txt; $('#caction').style.background = col;
-}
-$('#cp').oninput = conf; conf();
 
 // --- 9: fan-out
 const F = R.fanout, maxL = Math.max(F[1].median_latency_s, F[10].median_latency_s, F[50].median_latency_s) * 1.25;
@@ -581,12 +504,6 @@ const CARDS = [
 const VERD = { yes: ['System 1 ✓', 'yes'], no: ['Not System 1 ✗', 'no'], code: ['Just use code', 'code'] };
 $('#cards').innerHTML = CARDS.map(([q, v, why]) => `<button class="flip" aria-label="${q}"><div><div class="f">${q}<small>CLICK TO REVEAL</small></div><div class="b ${VERD[v][1]}"><strong>${VERD[v][0]}</strong>${why}</div></div></button>`).join('');
 $$('.flip').forEach(c => c.onclick = () => c.classList.toggle('open'));
-
-// --- 14: routing table
-const yn = v => `<td class="n" style="color:${v > .5 ? 'var(--green)' : 'var(--mute)'};${v > .5 ? '' : 'font-weight:400'}">${f2(v)}</td>`;
-$('#routet').innerHTML = `<tr><th>Request</th><th>"Which model?"</th><th>conf.</th><th>asks for slides</th><th>has code</th><th>needs current info</th><th>open research problem</th></tr>` +
-  R.routing.map(r => `<tr><td>${r.request}</td><td class="n" style="color:var(--pink)">${r.which_model.choice}</td><td class="n">${f2(r.which_model.confidence)}</td>${yn(r.asks_for_slides)}${yn(r.contains_code)}${yn(r.needs_current_info)}${yn(r.open_research_problem)}</tr>`).join('');
-
 
 // --- 16: scorecard
 const W = { employment_stability: 30, income_irregular: -40, other_debts: -25, high_cost_credit: -60, financial_distress: -50, purpose_specific: 20 };
