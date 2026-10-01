@@ -121,7 +121,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <div class="burst" style="width:26vw;height:26vw;background:var(--teal);right:16vw;bottom:-14vw;opacity:.35"></div>
   <p class="kicker rv">Training · Jev by TypeSafe AI</p>
   <h1 class="rv">Fast<br>judgments.<br><em>Not smart ones.</em></h1>
-  <p class="sub rv">What's actually new about Jev, what it can do, where it breaks, and how to tell the difference before you build.</p>
+  <p class="sub rv">There's a lot of magical thinking about Jev right now. This is an attempt to sort out what it's actually for.</p>
 </section>
 
 <!-- Meme -->
@@ -130,8 +130,8 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <div class="grid2" style="grid-template-columns:1.4fr 1fr">
     <img class="rv" src="midwit.jpg" alt="Midwit bell-curve meme. Both tails say 'Jev is pretty useful.' The crying middle says 'Can we please stop pretending this is new? It's basically BERT / logits / structured outputs with better packaging. AI did not suddenly begin in 2023.'" style="width:100%;max-height:72vh;object-fit:contain;background:#fff">
     <div>
-      <h2 class="rv" style="font-size:clamp(36px,4.6vw,72px)">Everyone in this picture is <em>right.</em></h2>
-      <p class="sub rv">The middle is right that the <b>shape</b> isn't new. The tails are right that it's <b>useful</b> anyway. The next ten minutes explain why both are true.</p>
+      <h2 class="rv" style="font-size:clamp(36px,4.6vw,72px)">They're <em>all</em> right.</h2>
+      <p class="sub rv">Yes, Jev is a classifier, and classifiers are old. It's still really useful. The next ten minutes are about why.</p>
     </div>
   </div>
 </section>
@@ -140,7 +140,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
 <section data-n="02" class="light" style="--accent:var(--orchid)">
   <p class="kicker rv">Start with what isn't new</p>
   <h2 class="rv">Calibrated classifiers are <em>decades</em> old.</h2>
-  <p class="sub rv">Credit scorecards. Logistic regression. Fraud models. BERT fine-tunes. Text in, <b>a probability you can trust</b> out. The output shape of Jev is not news.</p>
+  <p class="sub rv">Credit scorecards. Logistic regression. Fraud models. BERT fine-tunes. Text in, <b>a probability you can trust</b> out. Jev's output looks exactly like theirs.</p>
   <p class="sub rv"><b>The catch:</b> each one needed thousands of labels, per question. So most simple judgments were never automated.</p>
 </section>
 
@@ -176,7 +176,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
     <div class="q" style="opacity:.4">Bad classifiers<small>The worst of both</small></div>
     <div class="q">LLMs<small>Flexible, but confidence is hit and miss, and rarely "unsure"</small></div>
   </div>
-  <p class="small rv" style="font-size:15px">How? Not a new architecture but a new training target. Chat models are rewarded for answers <b>people like</b>; Jev is rewarded for <b>honest probabilities</b>. That's why clones that just restrict an LLM to A/B/C/D miss the point: "You've changed the interface, not the objective." (Marius Vach)</p>
+  <p class="small rv" style="font-size:15px">The difference is in the training. Chat models are rewarded for answers <b>people like</b>. Jev is rewarded for <b>probabilities that match reality</b>. Clones that just force an LLM to answer A, B, C or D skip that part, which is why they don't work as well: "You've changed the interface, not the objective." (Marius Vach)</p>
 </section>
 
 <!-- 7 -->
@@ -187,7 +187,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <div class="state rv" id="tkstate"></div>
   <div class="prims rv" id="prims"></div>
   <p class="small rv" id="tkmeta"></p>
-  <p class="sub rv" style="font-size:clamp(16px,1.4vw,21px)"><b>Confidence</b> comes from the shape of the distribution. Flip to the ambiguous ticket and watch frustration confidence drop. In code: act, ask for a check, or send it to a human.</p>
+  <p class="sub rv" style="font-size:clamp(16px,1.4vw,21px)"><b>Confidence</b> is high when one answer gets most of the probability and low when it's spread out. Flip to the ambiguous ticket and watch it drop. Your code decides what low means: ask for a check, or hand it to a person.</p>
 </section>
 
 <!-- 9 -->
@@ -230,7 +230,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
 <!-- Calibration evidence -->
 <section data-n="" class="light" style="--accent:var(--orchid)">
   <p class="kicker rv">So is Jev better calibrated than LLMs?</p>
-  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">It depends who's measuring. <em>Competitive, not magic.</em></h2>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Better than most LLMs. <em>Worse than the best.</em></h2>
   <div class="grid2 rv" style="margin-top:20px;align-items:start">
     <table>
       <tr><th>Study (ECE, lower is better)</th><th>Jev</th><th>LLMs</th></tr>
@@ -245,7 +245,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
       <p class="small" id="calmeta" style="margin-top:6px"></p>
     </div>
   </div>
-  <p class="small rv"><b>What holds up across sources:</b> Jev is roughly calibrated, beats most LLMs that just state a number, and loses to frontier models with reasoning. Its real edge is saying "unsure" quickly: on wotai's test it put 34.7% of answers in the 0.35–0.65 band, against 2.7% for Haiku, at 455 ms. TypeSafe publishes no calibration metric. If thresholds matter, recalibrate per question on about 50 labels.</p>
+  <p class="small rv">Results vary a lot by study. What they agree on: Jev beats most LLMs that just state a number and loses to frontier models that reason first. Where it stands out is admitting it's unsure, quickly: on wotai's test it put 34.7% of answers in the 0.35–0.65 band, against 2.7% for Haiku, at 455 ms. TypeSafe publishes no calibration metric. If thresholds matter, recalibrate per question on about 50 labels.</p>
 </section>
 
 <!-- 11 -->
@@ -253,7 +253,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
   <div class="burst" style="width:40vw;height:40vw;background:var(--amber);left:-14vw;bottom:-18vw;opacity:.3"></div>
   <p class="kicker rv">Now the important bit</p>
   <h2 class="rv">But it is <em>System 1.</em></h2>
-  <p class="sub rv">Kahneman's fast, intuitive thinking. Jev <b>doesn't reason, explain, write, or do maths.</b> It makes the kind of call a knowledgeable person makes in a few seconds, and nothing more.</p>
+  <p class="sub rv">Kahneman's fast, intuitive thinking. Jev <b>doesn't reason, explain, write, or do maths.</b> It makes the kind of call a knowledgeable person makes in a few seconds.</p>
 </section>
 
 <!-- 12 -->
@@ -267,7 +267,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
       <div class="card" id="negcard" style="margin-top:12px"></div>
     </div>
   </div>
-  <p class="small rv">Rule of thumb from TypeSafe's own "jaggedness" docs: <b>numbers, dates, counting, multi-hop logic, long irrelevant context → do it in code.</b> Probabilities near 0.5 aren't bugs; they're your cue to stop.</p>
+  <p class="small rv">Rule of thumb from TypeSafe's own "jaggedness" docs: <b>numbers, dates, counting, multi-hop logic, long irrelevant context → do it in code.</b> A probability near 0.5 is Jev telling you it doesn't know. Believe it.</p>
 </section>
 
 <!-- 13 -->
@@ -291,7 +291,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
     </table>
     <div>
       <p class="sub" style="margin-top:0">"In order to know how much thinking a task requires, you have to think."</p>
-      <p class="small">The router sent 59% of calls to DeepSeek 4.1 Flash ("basically just a DeepSeek 4.1 flash router") and averaged 104 agent steps per task against Astra's 19. It's a small sample (20 tasks, 1 attempt each) and it tests the router product rather than Jev's classification. The lesson still holds: just pick a decent model.</p>
+      <p class="small">The router sent 59% of calls to DeepSeek 4.1 Flash ("basically just a DeepSeek 4.1 flash router") and averaged 104 agent steps per task against Astra's 19. It's a small sample (20 tasks, 1 attempt each) and it tests the router product rather than Jev's classification. Still, the practical answer is to just pick a decent model.</p>
       <p class="small"><a href="https://x.com/theo/status/2103774771788108008">Theo's tweet</a> · <a href="https://www.youtube.com/watch?v=vu8X3YroB-w">video</a></p>
     </div>
   </div>
@@ -339,8 +339,8 @@ section.in .quad .q.jev{transform:none;opacity:1}
 <section data-n="17" style="--accent:var(--amber)">
   <p class="kicker rv">But</p>
   <h2 class="rv">Your scorecard can still be <em>bad.</em></h2>
-  <p class="sub rv">Jev makes judgments cheap. It doesn't make your criteria right, or unbiased. <b>The win:</b> each small question can be tested on 50 human labels and a counterfactual (swap the name, does the score move?). One big "is this a good applicant?" can't be.</p>
-  <p class="small rv">Simon Willison asked Jev "Good city?" of every Bay Area city: Cupertino came top, East Palo Alto bottom. The bias lives in the model; decomposition makes it findable.</p>
+  <p class="sub rv">Jev makes judgments cheap. It doesn't make your criteria right, or unbiased. What you can do is test each small question on 50 human labels, and run counterfactuals: swap the name, does the score move? You can't do that with one big "is this a good applicant?"</p>
+  <p class="small rv">Simon Willison asked Jev "Good city?" of every Bay Area city: Cupertino came top, East Palo Alto bottom. The bias is in the model either way. Small questions at least give you a chance of finding it.</p>
 </section>
 
 <!-- 18 -->
