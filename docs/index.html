@@ -144,6 +144,17 @@ section.in .quad .q.jev{transform:none;opacity:1}
 .dp .ax b{position:absolute;top:calc(50% - 9px);font:700 clamp(11px,.8vw,14px) var(--mono);transform:translateX(12px)}
 .dp .grp{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:8px 0 0}
 @media(max-width:700px){.dp .dpr{grid-template-columns:1fr 1fr;gap:8px}}
+.hist .hr{display:grid;grid-template-columns:70px minmax(160px,1.3fr) 1.4fr 120px;gap:14px;align-items:center;padding:5px 0;border-bottom:1px solid color-mix(in srgb,var(--fg) 10%,transparent);font-size:clamp(14px,1.15vw,18px)}
+.hist .hr.head{border:none;padding:0;font:600 10px var(--mono);color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.hist .yr{font-weight:700;color:var(--mute)}
+.hist .jev .yr,.hist .jev .m{color:var(--fg);font-weight:800}
+.hist .hb{display:flex;align-items:center;gap:8px;min-height:18px}
+.hist .hb i{display:block;height:14px;background:#9a9a9a}
+.hist .hb b{font:700 13px var(--mono)}
+.hist .hb span{font:400 12px var(--mono);color:var(--mute)}
+.hist .hb.axis{justify-content:space-between}
+.hist .hb.axis span{font:600 10px var(--mono)}
+@media(max-width:700px){.hist .hr{grid-template-columns:44px 1fr 1fr;gap:8px}.hist .hr>:last-child{display:none}}
 </style>
 </head>
 <body>
@@ -167,16 +178,20 @@ section.in .quad .q.jev{transform:none;opacity:1}
     <div>
       <h2 class="rv" style="font-size:clamp(36px,4.6vw,72px)">They're <em>all</em> right.</h2>
       <p class="sub rv">Yes, Jev is a classifier, and classifiers are old. It's still really useful. The next ten minutes are about why.</p>
+      <p class="sub rv" style="font-size:clamp(16px,1.4vw,21px)">Sebastian Raschka has built text classifiers for 15 years. He started out assuming he could knock up his own Jev, then found it worked better than he expected. His summary: "the ChatGPT moment for classification".</p>
     </div>
   </div>
 </section>
 
 <!-- 2 -->
-<section data-n="02" class="light" style="--accent:var(--orchid)">
-  <p class="kicker rv">Start with what isn't new</p>
-  <h2 class="rv">Calibrated classifiers are <em>decades</em> old.</h2>
-  <p class="sub rv">Credit scorecards. Logistic regression. Fraud models. BERT fine-tunes. Text in, <b>a probability you can trust</b> out. Jev's output looks exactly like theirs.</p>
-  <p class="sub rv"><b>The catch:</b> each one needed thousands of labels, per question. So most simple judgments were never automated.</p>
+<section data-n="" class="light" style="--accent:var(--orchid)">
+  <p class="kicker rv">Start with what isn't new · same task, 65 years: is this movie review positive?</p>
+  <h2 class="rv wide" style="font-size:clamp(36px,5vw,76px)">Text classifiers are <em>old.</em> The labels were the catch.</h2>
+  <div class="rv hist" style="margin-top:22px">
+    <div class="hr head"><span></span><span></span><div class="hb axis"><span>80%</span><span>IMDb accuracy</span><span>100%</span></div><span class="mono">training data</span></div>
+    <div class="hr"><span class="mono yr">1961</span><span class="m">Naive Bayes sorts computer abstracts</span><div class="hb"><span>no IMDb score</span></div><span class="tag" style="background:#c9c9c9">needs labels</span></div><div class="hr"><span class="mono yr">2000s</span><span class="m">Bag-of-words + logistic regression (the spam-filter era)</span><div class="hb"><i style="width:50%;"></i><b>89.9%</b></div><span class="tag" style="background:#c9c9c9">needs labels</span></div><div class="hr"><span class="mono yr">2010s</span><span class="m">LSTM recurrent network, trained from scratch</span><div class="hb"><i style="width:29%;"></i><b>85.7%</b></div><span class="tag" style="background:#c9c9c9">needs labels</span></div><div class="hr"><span class="mono yr">2018</span><span class="m">ULMFiT: pre-train, then fine-tune</span><div class="hb"><i style="width:77%;"></i><b>95.4%</b></div><span class="tag" style="background:#c9c9c9">needs labels</span></div><div class="hr"><span class="mono yr">2024</span><span class="m">ModernBERT, fine-tuned for 23 minutes</span><div class="hb"><i style="width:75%;"></i><b>95.0%</b></div><span class="tag" style="background:#c9c9c9">needs labels</span></div><div class="hr jev"><span class="mono yr">2026</span><span class="m">Jev: no training, just ask</span><div class="hb"><i style="width:82%;background:var(--pink)"></i><b>96.5%</b></div><span class="tag" style="background:var(--green)">no labels</span></div><div class="hr"><span class="mono yr">29 Sep</span><span class="m">OpenAI announces a Jev-like Decisions API</span><div class="hb"><span>the category is real</span></div><span></span></div>
+  </div>
+  <p class="small rv">The old rule of thumb: a cheap LLM for one-off decisions, a fine-tuned classifier for jobs you repeat. Jev covers most of both. Every IMDb model above Jev was trained on 25,000 labelled reviews. Jev scored 96.5% on the 25,000 test reviews without seeing any, for $0.65 in 22 minutes. It may have seen IMDb in training. Source: <a href="https://magazine.sebastianraschka.com/p/classifier-history-and-jev">Sebastian Raschka, Ahead of AI</a></p>
 </section>
 
 <!-- 4 -->
@@ -202,7 +217,8 @@ section.in .quad .q.jev{transform:none;opacity:1}
 <section data-n="05" style="--accent:var(--pink)">
   <p class="kicker rv">What Jev changes</p>
   <h2 class="rv wide">The empty quadrant.</h2>
-  <div class="quad rv">
+  <div class="grid2" style="grid-template-columns:1.3fr 1fr;align-items:start;margin-top:8px">
+    <div class="quad rv" style="margin-top:0">
     <div></div><div class="ax">Needs labelled data</div><div class="ax">No labels needed</div>
     <div class="ax v">Calibrated</div>
     <div class="q">Trained classifiers<small>Reliable, but one dataset per question</small></div>
@@ -211,7 +227,14 @@ section.in .quad .q.jev{transform:none;opacity:1}
     <div class="q" style="opacity:.4">Bad classifiers<small>The worst of both</small></div>
     <div class="q">LLMs<small>Flexible, but confidence is hit and miss, and rarely "unsure"</small></div>
   </div>
-  <p class="small rv" style="font-size:15px">The difference is in the training. Chat models are rewarded for answers <b>people like</b>. Jev is rewarded for <b>probabilities that match reality</b>. Clones that just force an LLM to answer A, B, C or D skip that part, which is why they don't work as well: "You've changed the interface, not the objective." (Marius Vach)</p>
+    <div class="rv" style="display:flex;flex-direction:column;gap:12px">
+      <div class="card"><span class="tag">The difference is the training</span><p style="margin-top:10px;font-size:clamp(14px,1.1vw,17px);line-height:1.4">Chat models are rewarded for answers <b>people like</b>. Jev is rewarded for <b>probabilities that match reality</b>. TypeSafe hasn't published how; a similar published method (RLCR) scores answers like this:</p>
+        <div class="row" style="gap:28px;margin-top:10px"><div><div class="big" style="font-size:40px;color:var(--red)">−0.81</div><div class="mono" style="font-size:12px;color:var(--mute)">wrong, and 90% sure</div></div><div><div class="big" style="font-size:40px;color:var(--amber)">−0.04</div><div class="mono" style="font-size:12px;color:var(--mute)">wrong, but only 20% sure</div></div></div>
+        <p class="mono" style="font-size:12px;color:var(--mute);margin-top:6px">Bluffing costs 20× more than admitting doubt.</p></div>
+      <div class="card"><span class="tag" style="background:var(--teal)">Why the clones don't match it</span><p style="margin-top:10px;font-size:clamp(14px,1.1vw,17px);line-height:1.4">Forcing an LLM to answer A/B/C/D changes the interface, not the training. Raschka found open clones score <b>83–92%</b> on IMDb; Jev scores <b>96.5%</b>.</p></div>
+    </div>
+  </div>
+
 </section>
 
 <!-- 7 -->
@@ -395,6 +418,7 @@ section.in .quad .q.jev{transform:none;opacity:1}
     <div><b>Search &amp; RAG</b>Rerank 100 BM25 hits; drop irrelevant passages before the LLM sees them</div>
     <div><b>LLM guardrails</b>Screen every prompt and reply for cents</div>
     <div><b>Intent routing</b>Route on "what's being asked", never "who's best"</div>
+    <div><b>Agent harnesses</b>Pick the right skill file, screen context for prompt injection, find the relevant files</div>
     <div><b>Entity matching</b>"Are these two records the same company?"</div>
   </div>
 </section>
